@@ -1,0 +1,61 @@
+#include <DHT.h>
+
+#define DHTPIN 15           // DHT11 data pin connected to GPIO 15
+#define DHTTYPE DHT11       // DHT 11 sensor
+#define INFRARED_PIN 34     // Infrared sensor signal pin
+#define BUZZER_PIN 32       // Buzzer pin connected to GPIO 32
+
+DHT dht(DHTPIN, DHTTYPE);  // Initialize DHT sensor
+
+void setup() {
+  // Start serial communication
+  Serial.begin(115200);
+
+  // Initialize DHT11 sensor
+  dht.begin();
+
+  // Set Infrared sensor pin as input
+  pinMode(INFRARED_PIN, INPUT);
+
+  // Set Buzzer pin as output
+  pinMode(BUZZER_PIN, OUTPUT);
+
+  // Ensure buzzer is off at the start
+  digitalWrite(BUZZER_PIN, LOW);
+
+  Serial.println("Fire Detection System Initialized!");
+}
+
+void loop() {
+  // Read temperature and humidity from DHT11
+  float humidity = dht.readHumidity();
+  float temperature = dht.readTemperature();
+
+  // Check if any reading failed
+  if (isnan(humidity) || isnan(temperature)) {
+    Serial.println("Failed to read from DHT sensor!");
+    return;
+  }
+
+  // Print the temperature and humidity
+  Serial.print("Temperature: ");
+  Serial.print(temperature);
+  Serial.print(" °C ");
+  Serial.print("Humidity: ");
+  Serial.print(humidity);
+  Serial.println(" %");
+
+  // Read infrared sensor value (detect fire/heat)
+  int infraredState = digitalRead(INFRARED_PIN);
+
+  // If infrared sensor detects heat/fire, trigger buzzer
+  if (infraredState == HIGH) {  // HIGH means fire detected (assuming active HIGH IR sensor)
+    Serial.println("Fire Detected! Triggering alarm.");
+    digitalWrite(BUZZER_PIN, HIGH);  // Turn on the buzzer
+  } else {
+    digitalWrite(BUZZER_PIN, LOW);   // Turn off the buzzer
+  }
+
+  // Add a delay for reading sensors and debugging
+  delay(2000);  // Delay for 2 seconds
+}
